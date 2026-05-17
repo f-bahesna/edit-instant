@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  # Backend Service (Golang + SQLite inside)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tiktok-agent-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - ENV=development
+      - DB_PATH=/app/data/tiktok_agent.db
+    volumes:
+      - ./backend:/app
+      # Mount directory to keep SQLite DB file persisted on host
+      - ./backend/data:/app/data
+
+  # Frontend Service (Vue 3 / Vite / Tailwind)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tiktok-agent-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8080
+    depends_on:
+      - backend
